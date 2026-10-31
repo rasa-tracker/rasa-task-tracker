@@ -115,7 +115,7 @@ export const PALETTE = [
   '#0d9488',
 ]
 
-export function emptyDatabase(teamName = 'تیم رسا'): Database {
+export function emptyDatabase(teamName = 'تیم رصا'): Database {
   return {
     schemaVersion: 1,
     revision: 0,

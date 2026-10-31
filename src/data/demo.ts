@@ -6,7 +6,7 @@ export function demoDatabase(): Database {
   const today = new Date()
   const d = (n: number) => dayKey(addDays(today, n))
   const now = new Date().toISOString()
-  const db = emptyDatabase('تیم رسا (نمایشی)')
+  const db = emptyDatabase('تیم رصا (نمایشی)')
 
   const people: [string, string, string][] = [
     ['m1', 'سارا احمدی', 'مدیر پروژه'],
