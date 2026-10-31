@@ -68,11 +68,12 @@ export function Select({ className, children, ...props }: SelectHTMLAttributes<H
 
 export function Field({ label, children, hint, className }: { label: string; children: ReactNode; hint?: ReactNode; className?: string }) {
   return (
-    <label className={clsx('block space-y-1.5', className)}>
+    // A <div>, not a <label>: a label would turn clicks on empty space into clicks on the first button inside it.
+    <div role="group" aria-label={label} className={clsx('block space-y-1.5', className)}>
       <span className="block text-xs font-medium text-slate-600">{label}</span>
       {children}
       {hint && <span className="block text-2xs text-slate-400">{hint}</span>}
-    </label>
+    </div>
   )
 }
 
