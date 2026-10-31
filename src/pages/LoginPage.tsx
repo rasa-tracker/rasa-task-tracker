@@ -54,7 +54,7 @@ export function LoginPage({ onLogin }: { onLogin: (s: Session) => void }) {
       <div className="w-full max-w-md space-y-5">
         <div className="text-center">
           <img src={`${import.meta.env.BASE_URL}favicon.svg`} alt="" className="mx-auto mb-3 h-14 w-14" />
-          <h1 className="text-xl font-bold text-slate-900">مدیریت پروژه و تسک تیم رسا</h1>
+          <h1 className="text-xl font-bold text-slate-900">مدیریت پروژه و تسک تیم رصا</h1>
           <p className="mt-1 text-sm text-slate-500">پروژه‌ها، تسک‌ها، افراد و تقویم تیم در یک جا</p>
         </div>
 

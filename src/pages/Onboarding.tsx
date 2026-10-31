@@ -28,7 +28,7 @@ export function Loading() {
 /** First run: the data file does not exist yet. */
 export function SetupScreen() {
   const { session, commit, status, error } = useStore()
-  const [team, setTeam] = useState('تیم رسا')
+  const [team, setTeam] = useState('تیم رصا')
   const [name, setName] = useState(session.name && session.name !== session.login ? session.name : '')
   const [title, setTitle] = useState('')
   const busy = status === 'saving'
@@ -36,7 +36,7 @@ export function SetupScreen() {
     if (!name.trim()) return
     const now = new Date().toISOString()
     commit((d) => {
-      d.teamName = team.trim() || 'تیم رسا'
+      d.teamName = team.trim() || 'تیم رصا'
       if (!d.members.some((m) => m.githubLogin?.toLowerCase() === session.login.toLowerCase())) {
         d.members.push({ id: newId(), name: name.trim(), title: title.trim() || undefined, githubLogin: session.login, color: PALETTE[0], createdAt: now })
       }

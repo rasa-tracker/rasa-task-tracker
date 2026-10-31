@@ -14,8 +14,8 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.svg', 'apple-touch-icon.png'],
       manifest: {
-        name: 'رسا | مدیریت پروژه و تسک',
-        short_name: 'رسا تسک',
+        name: 'رصا | مدیریت پروژه و تسک',
+        short_name: 'رصا تسک',
         description: 'مدیریت پروژه‌ها، تسک‌ها و تقویم تیم',
         lang: 'fa',
         dir: 'rtl',
