@@ -148,7 +148,7 @@ function InviteSettings({ owner }: { owner: string }) {
   }
   const link = (href: string, text: string) => (
     <a href={href} target="_blank" rel="noreferrer" className="text-brand-600 underline">
-      {text}
+      <bdi>{text}</bdi>
     </a>
   )
   return (
@@ -163,11 +163,15 @@ function InviteSettings({ owner }: { owner: string }) {
             <UserPlus className="h-4 w-4" /> دعوت از داخل برنامه فعال است.
           </p>
           <p>هنگام «افزودن فرد»، نام کاربری گیت‌هاب یا ایمیل او را بنویسید و گزینه دعوت را روشن بگذارید. برای افرادی که قبلاً اضافه شده‌اند، در پروفایلشان «دعوت به برنامه» را بزنید.</p>
-          <p className="text-slate-500">
-            برای اینکه افراد دعوت‌شده بتوانند تغییرات را ذخیره کنند، یک بار این دو تنظیم سازمان لازم است:{' '}
-            {link(`https://github.com/organizations/${owner}/settings/member_privileges`, 'Base permissions روی Write')}، و{' '}
-            {link(`https://github.com/organizations/${owner}/settings/personal-access-tokens`, 'Do not require administrator approval')}.
-          </p>
+          <div className="text-slate-500">
+            <p>برای اینکه افراد دعوت‌شده بتوانند تغییرات را ذخیره کنند، یک بار این دو تنظیم سازمان لازم است:</p>
+            <ul className="mt-1 list-disc space-y-1 pr-4">
+              <li>
+                {link(`https://github.com/organizations/${owner}/settings/member_privileges`, 'Base permissions')} روی <bdi dir="ltr">Write</bdi>
+              </li>
+              <li>{link(`https://github.com/organizations/${owner}/settings/personal-access-tokens`, 'Do not require administrator approval')}</li>
+            </ul>
+          </div>
         </div>
       ) : (
         <div className="space-y-2 text-xs leading-6 text-slate-600">
