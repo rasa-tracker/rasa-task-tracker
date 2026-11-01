@@ -1,5 +1,6 @@
 import { Plus, Trash2, X } from 'lucide-react'
 import { createContext, useContext, useState, type ReactNode } from 'react'
+import { INVITE_MESSAGES, useOrg } from '../data/org'
 import { useStore } from '../data/store'
 import {
   newId,
@@ -17,6 +18,7 @@ import {
   type Task,
 } from '../data/types'
 import { ColorPicker, DateInput, MemberPicker } from './pickers'
+import { useToast } from './toast'
 import { Button, ConfirmDialog, Field, Input, Modal, Select, Textarea } from './ui'
 
 type Open =
@@ -544,6 +546,11 @@ function MemberDialog({ member, onClose }: { member?: Member; onClose: () => voi
   const [confirm, setConfirm] = useState(false)
   const login = githubLogin.trim().replace(/^@/, '')
   const loginTaken = !!login && db.members.some((m) => m.id !== member?.id && m.githubLogin?.toLowerCase() === login.toLowerCase())
+  const { canInvite, accessOf, invite } = useOrg()
+  const toast = useToast()
+  const [sendInvite, setSendInvite] = useState(true)
+  const inviteTarget = login ? { login } : email.trim() ? { email: email.trim() } : null
+  const access = canInvite ? accessOf({ githubLogin: login || undefined, email: email.trim() || undefined }) : null
 
   const save = () => {
     if (!name.trim() || loginTaken) return
@@ -565,6 +572,11 @@ function MemberDialog({ member, onClose }: { member?: Member; onClose: () => voi
     } else {
       const created: Member = { id: newId(), ...fields, createdAt: new Date().toISOString() }
       commit((d) => void d.members.push(created), `فرد جدید «${fields.name}»`)
+    }
+    if (canInvite && sendInvite && inviteTarget && access === 'none') {
+      invite(inviteTarget)
+        .then((r) => toast(`${fields.name}: ${INVITE_MESSAGES[r]}`, 'success'))
+        .catch((e) => toast(e instanceof Error ? e.message : String(e), 'error'))
     }
     onClose()
   }
@@ -629,6 +641,29 @@ function MemberDialog({ member, onClose }: { member?: Member; onClose: () => voi
         >
           <Input dir="ltr" className="text-right" value={githubLogin} onChange={(e) => setLogin(e.target.value)} placeholder="username" />
         </Field>
+        {access === 'member' && <p className="rounded-lg bg-emerald-50 p-3 text-xs text-emerald-800">این فرد عضو سازمان گیت‌هاب است و می‌تواند وارد برنامه شود.</p>}
+        {access === 'invited' && <p className="rounded-lg bg-amber-50 p-3 text-xs text-amber-800">برای این فرد دعوت فرستاده شده و منتظر قبول است.</p>}
+        {access === 'none' && (
+          <label className="flex cursor-pointer items-start gap-2.5 rounded-lg bg-brand-50/70 p-3 text-xs text-slate-700">
+            <input
+              type="checkbox"
+              className="mt-0.5 h-4 w-4 accent-brand-600"
+              checked={sendInvite && !!inviteTarget}
+              disabled={!inviteTarget}
+              onChange={(e) => setSendInvite(e.target.checked)}
+            />
+            <span>
+              <span className="block font-medium">دعوت برای ورود به برنامه هم فرستاده شود</span>
+              <span className="mt-0.5 block text-2xs leading-5 text-slate-500">
+                {login
+                  ? `دعوت عضویت در سازمان به حساب گیت‌هاب ${login} فرستاده می‌شود.`
+                  : inviteTarget
+                    ? 'دعوت به همین ایمیل فرستاده می‌شود. اگر حساب گیت‌هاب ندارد، با همان ایمیل می‌سازد.'
+                    : 'برای دعوت، نام کاربری گیت‌هاب یا ایمیل این فرد را بنویسید.'}
+              </span>
+            </span>
+          </label>
+        )}
         <Field label="رنگ">
           <ColorPicker value={color} onChange={setColor} colors={PALETTE} />
         </Field>

@@ -1,10 +1,12 @@
-import { Download, ExternalLink, History, LogOut, RefreshCw, RotateCcw, Smartphone } from 'lucide-react'
+import { Download, ExternalLink, History, Loader2, LogOut, RefreshCw, RotateCcw, Smartphone, UserPlus } from 'lucide-react'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { SyncIndicator } from '../components/Layout'
 import { Avatar, Button, Card, Field, Input, PageHeader } from '../components/ui'
 import { resetDemo } from '../data/backend'
+import { useOrg } from '../data/org'
 import { useStore } from '../data/store'
+import { TOKENS_PAGE } from '../lib/github'
 import { fa, todayKey } from '../lib/date'
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
@@ -117,6 +119,8 @@ export function SettingsPage({ onLogout }: { onLogout: () => void }) {
         </div>
       </Section>
 
+      {session.kind === 'github' && <InviteSettings owner={session.owner} />}
+
       <Section title="نصب روی گوشی">
         <div className="flex gap-3 text-xs leading-6 text-slate-600">
           <Smartphone className="mt-1 h-5 w-5 shrink-0 text-slate-400" />
@@ -132,5 +136,54 @@ export function SettingsPage({ onLogout }: { onLogout: () => void }) {
         </div>
       </Section>
     </div>
+  )
+}
+
+function InviteSettings({ owner }: { owner: string }) {
+  const { canInvite, refresh } = useOrg()
+  const [checking, setChecking] = useState(false)
+  const recheck = () => {
+    setChecking(true)
+    void refresh().finally(() => setChecking(false))
+  }
+  const link = (href: string, text: string) => (
+    <a href={href} target="_blank" rel="noreferrer" className="text-brand-600 underline">
+      {text}
+    </a>
+  )
+  return (
+    <Section title="دعوت همکاران">
+      {canInvite === null ? (
+        <p className="flex items-center gap-2 text-xs text-slate-500">
+          <Loader2 className="h-3.5 w-3.5 animate-spin" /> در حال بررسی…
+        </p>
+      ) : canInvite ? (
+        <div className="space-y-2 text-xs leading-6 text-slate-600">
+          <p className="flex items-center gap-2 font-medium text-emerald-700">
+            <UserPlus className="h-4 w-4" /> دعوت از داخل برنامه فعال است.
+          </p>
+          <p>هنگام «افزودن فرد»، نام کاربری گیت‌هاب یا ایمیل او را بنویسید و گزینه دعوت را روشن بگذارید. برای افرادی که قبلاً اضافه شده‌اند، در پروفایلشان «دعوت به برنامه» را بزنید.</p>
+          <p className="text-slate-500">
+            برای اینکه افراد دعوت‌شده بتوانند تغییرات را ذخیره کنند، یک بار این دو تنظیم سازمان لازم است:{' '}
+            {link(`https://github.com/organizations/${owner}/settings/member_privileges`, 'Base permissions روی Write')}، و{' '}
+            {link(`https://github.com/organizations/${owner}/settings/personal-access-tokens`, 'Do not require administrator approval')}.
+          </p>
+        </div>
+      ) : (
+        <div className="space-y-2 text-xs leading-6 text-slate-600">
+          <p>فقط مدیر سازمان می‌تواند از داخل برنامه دعوت بفرستد، و کلیدش باید اجازه مدیریت اعضا را داشته باشد. اگر مدیر هستید:</p>
+          <ol className="list-decimal space-y-1 pr-4">
+            <li>{link(TOKENS_PAGE, 'صفحه کلیدهای گیت‌هاب')} را باز کنید و روی کلیدی که برای این برنامه ساخته‌اید بزنید، بعد Edit.</li>
+            <li>
+              در بخش Permissions، از گروه <b>Organization</b> اجازه <b>Members</b> را با سطح <b>Read and write</b> اضافه کنید.
+            </li>
+            <li>پایین صفحه Update را بزنید و اینجا «بررسی دوباره» را بزنید.</li>
+          </ol>
+          <Button size="sm" onClick={recheck} disabled={checking}>
+            {checking ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RefreshCw className="h-3.5 w-3.5" />} بررسی دوباره
+          </Button>
+        </div>
+      )}
+    </Section>
   )
 }

@@ -3,12 +3,14 @@ import { Link } from 'react-router-dom'
 import { useDialogs } from '../components/dialogs'
 import { Avatar, Button, Card, EmptyState, PageHeader } from '../components/ui'
 import { isClosed, isOverdue } from '../data/selectors'
+import { useOrg } from '../data/org'
 import { useStore } from '../data/store'
 import { fa } from '../lib/date'
 
 export function PeoplePage() {
   const { db, me } = useStore()
   const { openMember } = useDialogs()
+  const { accessOf } = useOrg()
   const members = [...db.members].sort((a, b) => a.name.localeCompare(b.name, 'fa'))
   return (
     <div>
@@ -36,6 +38,7 @@ export function PeoplePage() {
                     <div className="flex items-center gap-2">
                       <span className="truncate font-semibold text-slate-800">{m.name}</span>
                       {me?.id === m.id && <span className="rounded bg-brand-50 px-1.5 text-2xs text-brand-700">من</span>}
+                      {accessOf(m) === 'invited' && <span className="rounded bg-amber-50 px-1.5 text-2xs text-amber-700">دعوت‌شده</span>}
                     </div>
                     {m.title && <div className="truncate text-xs text-slate-500">{m.title}</div>}
                     <div className="mt-1.5 flex flex-wrap gap-x-3 text-2xs text-slate-500">
