@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { HashRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { DialogProvider } from './components/dialogs'
+import { ToastProvider } from './components/toast'
+import { OrgProvider } from './data/org'
 import { Layout } from './components/Layout'
 import { clearSession, loadSession, saveSession, type Session } from './data/session'
 import { StoreProvider, useStore } from './data/store'
@@ -33,6 +35,8 @@ function Gate({ onLogout }: { onLogout: () => void }) {
     )
   }
   return (
+    <ToastProvider>
+    <OrgProvider>
     <DialogProvider>
       <Layout>
         <Routes>
@@ -48,6 +52,8 @@ function Gate({ onLogout }: { onLogout: () => void }) {
         </Routes>
       </Layout>
     </DialogProvider>
+    </OrgProvider>
+    </ToastProvider>
   )
 }
 

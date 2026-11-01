@@ -1,6 +1,7 @@
 import { ArrowRight, Mail, Pencil, Phone, Plus } from 'lucide-react'
 import { useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
+import { AccessStatus } from '../components/access'
 import { useDialogs } from '../components/dialogs'
 import { Avatar, Button, Card, EmptyState, Segmented } from '../components/ui'
 import { ProjectCard, TaskBoard, TaskList } from '../components/work'
@@ -60,6 +61,9 @@ export function PersonPage() {
                 </a>
               )}
               {member.githubLogin && <span dir="ltr">@{member.githubLogin}</span>}
+            </div>
+            <div className="pt-2">
+              <AccessStatus member={member} />
             </div>
           </div>
           <Button onClick={() => openMember(member)}>

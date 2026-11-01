@@ -44,6 +44,9 @@ async function failure(res: Response): Promise<GitHubError> {
   try {
     const body = await res.json()
     if (body?.message) message = body.message
+    if (Array.isArray(body?.errors) && body.errors.length) {
+      message += ': ' + body.errors.map((e: { message?: string; code?: string }) => e.message ?? e.code ?? '').join('; ')
+    }
   } catch {
     /* body was not JSON */
   }
@@ -175,3 +178,83 @@ export function newTokenUrl(owner: string, teamName: string): string {
   })
   return `https://github.com/settings/personal-access-tokens/new?${params}`
 }
+
+/* ---------------------------------------------------------------------------
+ * Organization invitations
+ *
+ * Only an organization owner whose token also has the organization permission
+ * "Members: Read and write" can use these. Everyone else simply does not see
+ * the invite controls.
+ * ------------------------------------------------------------------------- */
+
+export interface OrgInvitation {
+  id: number
+  login: string | null
+  email: string | null
+}
+
+async function getJson<T>(token: string, path: string): Promise<T> {
+  const res = await fetch(`${API}${path}`, { headers: headers(token), cache: 'no-store' })
+  if (!res.ok) throw await failure(res)
+  return res.json()
+}
+
+/** Pending invitations, or null when this token may not manage the organization's members. */
+export async function listInvitations(token: string, org: string): Promise<OrgInvitation[] | null> {
+  try {
+    const rows = await getJson<{ id: number; login: string | null; email: string | null }[]>(
+      token,
+      `/orgs/${encodeURIComponent(org)}/invitations?per_page=100`,
+    )
+    return rows.map((r) => ({ id: r.id, login: r.login, email: r.email }))
+  } catch (e) {
+    if (e instanceof GitHubError && (e.status === 403 || e.status === 404)) return null
+    throw e
+  }
+}
+
+/** Logins (lower-case) of everyone in the organization. */
+export async function listOrgMembers(token: string, org: string): Promise<string[]> {
+  const logins: string[] = []
+  for (let page = 1; page <= 5; page++) {
+    const rows = await getJson<{ login: string }[]>(token, `/orgs/${encodeURIComponent(org)}/members?per_page=100&page=${page}`)
+    logins.push(...rows.map((r) => r.login.toLowerCase()))
+    if (rows.length < 100) break
+  }
+  return logins
+}
+
+export type InviteResult = 'sent' | 'already-member' | 'already-invited'
+
+export class InviteError extends Error {}
+
+/** Invite someone to the organization by GitHub username, or by email when they have no account yet. */
+export async function inviteToOrg(token: string, org: string, target: { login?: string; email?: string }): Promise<InviteResult> {
+  let body: Record<string, unknown>
+  if (target.login) {
+    const res = await fetch(`${API}/users/${encodeURIComponent(target.login)}`, { headers: headers(token), cache: 'no-store' })
+    if (res.status === 404) throw new InviteError(`کاربری با نام «${target.login}» در گیت‌هاب پیدا نشد.`)
+    if (!res.ok) throw await failure(res)
+    const user = await res.json()
+    body = { invitee_id: user.id, role: 'direct_member' }
+  } else if (target.email) {
+    body = { email: target.email, role: 'direct_member' }
+  } else {
+    throw new InviteError('برای دعوت، نام کاربری گیت‌هاب یا ایمیل این فرد لازم است.')
+  }
+  const res = await fetch(`${API}/orgs/${encodeURIComponent(org)}/invitations`, {
+    method: 'POST',
+    headers: headers(token, { 'Content-Type': 'application/json' }),
+    body: JSON.stringify(body),
+  })
+  if (res.ok) return 'sent'
+  const detail = (await failure(res)).message
+  if (res.status === 422 && /already.*(member|part of)/i.test(detail)) return 'already-member'
+  if (res.status === 422 && /already.*invit|pending/i.test(detail)) return 'already-invited'
+  if (res.status === 403 || res.status === 404)
+    throw new InviteError('کلید شما اجازه دعوت به سازمان را ندارد. در تنظیمات برنامه، بخش «دعوت همکاران» را ببینید.')
+  throw new InviteError(`گیت‌هاب دعوت را نپذیرفت: ${detail}`)
+}
+
+/** GitHub's list of the signed-in user's fine-grained tokens, where a token's permissions can be edited. */
+export const TOKENS_PAGE = 'https://github.com/settings/personal-access-tokens'
