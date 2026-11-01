@@ -199,18 +199,13 @@ async function getJson<T>(token: string, path: string): Promise<T> {
   return res.json()
 }
 
-/** Pending invitations, or null when this token may not manage the organization's members. */
-export async function listInvitations(token: string, org: string): Promise<OrgInvitation[] | null> {
-  try {
-    const rows = await getJson<{ id: number; login: string | null; email: string | null }[]>(
-      token,
-      `/orgs/${encodeURIComponent(org)}/invitations?per_page=100`,
-    )
-    return rows.map((r) => ({ id: r.id, login: r.login, email: r.email }))
-  } catch (e) {
-    if (e instanceof GitHubError && (e.status === 403 || e.status === 404)) return null
-    throw e
-  }
+/** Pending invitations. Throws GitHubError when this token may not manage the organization's members. */
+export async function listInvitations(token: string, org: string): Promise<OrgInvitation[]> {
+  const rows = await getJson<{ id: number; login: string | null; email: string | null }[]>(
+    token,
+    `/orgs/${encodeURIComponent(org)}/invitations?per_page=100`,
+  )
+  return rows.map((r) => ({ id: r.id, login: r.login, email: r.email }))
 }
 
 /** Logins (lower-case) of everyone in the organization. */

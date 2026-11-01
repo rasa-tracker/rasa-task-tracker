@@ -140,7 +140,7 @@ export function SettingsPage({ onLogout }: { onLogout: () => void }) {
 }
 
 function InviteSettings({ owner }: { owner: string }) {
-  const { canInvite, refresh } = useOrg()
+  const { canInvite, refresh, reason, checkedAt } = useOrg()
   const [checking, setChecking] = useState(false)
   const recheck = () => {
     setChecking(true)
@@ -182,6 +182,20 @@ function InviteSettings({ owner }: { owner: string }) {
           <Button size="sm" onClick={recheck} disabled={checking}>
             {checking ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RefreshCw className="h-3.5 w-3.5" />} بررسی دوباره
           </Button>
+          {reason && (
+            <div className="rounded-lg bg-amber-50 p-3 text-amber-900">
+              <p className="font-medium">
+                هنوز فعال نشده{checkedAt ? ` (آخرین بررسی: ساعت ${fa(new Date(checkedAt).toTimeString().slice(0, 5))})` : ''}.
+              </p>
+              {reason.hint && <p className="mt-1">{reason.hint}</p>}
+              <p className="mt-1 text-2xs text-amber-800/80">
+                پاسخ گیت‌هاب:{' '}
+                <span dir="ltr" className="font-mono">
+                  {reason.detail}
+                </span>
+              </p>
+            </div>
+          )}
         </div>
       )}
     </Section>
